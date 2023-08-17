@@ -1,10 +1,44 @@
 from pathlib import Path
 
-from flask import Response, make_response, request
+from flask import Response, make_response, request, Flask
 from helpers import error, log
+from pipeline_reasoning import runPipeline
+from constants import STATUS_SCHEDULED, TASK_HARVESTING_REASONING
+from lib_utils import isTask
 
 from eye import Eye
 from config import CONFIG_DIR
+
+app = Flask(__name__) # to be removed
+
+def get_entries(deltas): 
+    entries = []
+    for delta in deltas:
+        for insert in delta.inserts:
+             predicate = insert.predicate.value
+             obj = insert.object.value
+             subject = insert.subject.value
+             if predicate == 'http://www.w3.org/ns/adms#status' and obj == STATUS_SCHEDULED:
+                entries.append(subject)
+    return entries
+
+
+
+@app.route("/delta", methods=["POST"])
+def delta() -> Response:
+    response = make_response()
+    response.status = 204
+    entries = get_entries(request.json)
+    if len(entries) == 0:
+        log('Delta did not contain potential tasks that are ready for import, awaiting the next batch!')
+        return response
+
+    for entry in entries:
+        # todo i stopped there
+        if isTask(entry):
+          runPipeline(entry)
+
+    return response
 
 
 @app.route("/reason/", defaults={"path": None}, methods=["GET", "POST"])
@@ -46,3 +80,7 @@ def reason_with_config(path) -> Response:
         response.mimetype = "text/turtle"
         log(f"200 {path}")
         return response
+
+
+
+
