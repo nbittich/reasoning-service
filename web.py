@@ -3,7 +3,7 @@ from pathlib import Path
 from flask import Response, make_response, request, Flask
 from helpers import error, log
 from pipeline_reasoning import runPipeline
-from constants import STATUS_SCHEDULED, TASK_HARVESTING_REASONING
+from constants import STATUS_SCHEDULED
 from lib_utils import isTask
 
 from eye import Eye

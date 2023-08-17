@@ -1,6 +1,7 @@
 import os
 import subprocess
 import time
+import shutil
 from typing import Tuple
 
 from helpers import generate_uuid, log
@@ -39,6 +40,15 @@ class Eye:
         temp_file.close()
         self.temp_files.append(temp_file_name)
         log(f"Created temp file {temp_file_name}")
+
+    def add_data_by_path(self, path) -> None:
+        temp_file_name = (
+            f"{self.temp_dir}" f'{time.strftime("%Y%m%d-%H%M%S")}-{generate_uuid()}.ttl'
+        )
+        shutil.copyfile(path, temp_file_name)
+        self.temp_files.append(temp_file_name)
+        log(f"Created temp file {temp_file_name}")
+
 
     def cleanup(self) -> None:
         if not KEEP_TEMP_FILES:
