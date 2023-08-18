@@ -1,9 +1,9 @@
-from config import REASONING_CONFIG_FILE_NAME, CONFIG_DIR
+from config import CONFIG_DIR
 from eye import Eye
-from lib_utils import loadTask, select_input_container_graph,fetch_path_from_input_container, updateStatus
-from constants import TASK_HARVESTING_REASONING, STATUS_BUSY
+from lib_utils import append_task_result_file, loadTask, select_input_container_graph,fetch_path_from_input_container, updateStatus,write_ttl_file, append_task_result_graph
+from constants import STATUS_FAILED, TASK_HARVESTING_REASONING, STATUS_BUSY
 from pathlib import Path
-
+from helpers import log,generate_uuid
 import os
 def runPipeline(entry): 
     task = loadTask(entry)
@@ -23,6 +23,23 @@ def runPipeline(entry):
     if queries:
         eye.add_queries(queries)
     eye.add_data_by_reference([data.resolve() for data in config.glob("*.n3")])
+    eye.add_data_by_path(path)
+    data, code = eye.reason()
+    if code:
+        log(f"an error occurred")
+        updateStatus(task, STATUS_FAILED)
+    else:
+        file_uri= write_ttl_file(task.get('graph',''), data, "enriched-data.ttl")
+        file_container_uuid = generate_uuid()
+        file_container_uri =f"http://redpencil.data.gift/id/dataContainers/{file_container_uuid}"
+        append_task_result_file(task, file_container_uri, file_container_uuid, file_uri)
+        graph_container_uuid = generate_uuid()
+        graph_container_uri = f"http://redpencil.data.gift/id/dataContainers/{graph_container_uuid}"
+        append_task_result_graph(task, graph_container_uri,graph_container_uuid, file_container_uri)
+        updateStatus(task, STATUS_FAILED)
+
+
+
 
 
     

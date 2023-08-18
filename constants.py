@@ -23,3 +23,4 @@ PREFIXES = """
   PREFIX cogs: <http://vocab.deri.ie/cogs#>
   PREFIX adms: <http://www.w3.org/ns/adms#>
 """
+
