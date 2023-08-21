@@ -1,7 +1,7 @@
 from config import CONFIG_DIR
 from eye import Eye
 from lib_utils import append_task_result_file, loadTask, select_input_container_graph,fetch_path_from_input_container, updateStatus,write_ttl_file, append_task_result_graph
-from constants import STATUS_FAILED, TASK_HARVESTING_REASONING, STATUS_BUSY
+from constants import STATUS_FAILED, TASK_HARVESTING_REASONING, STATUS_BUSY, STATUS_SUCCESS
 from pathlib import Path
 from helpers import log,generate_uuid
 import os
