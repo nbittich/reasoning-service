@@ -1,11 +1,12 @@
 import os
 from string import Template
 from escape_helpers import sparql_escape_uri, sparql_escape_datetime, sparql_escape_string, sparql_escape_int
-from python_mu_auth_sudo import query_sudo, update_sudo
+from sudo_query_helpers import query_sudo, update_sudo
 from datetime import datetime
 from helpers import log,generate_uuid
 
 def isTask(deltaEntry):
+    print("enter isTask")
     query_template = Template("""
         PREFIX harvesting: <http://lblod.data.gift/vocabularies/harvesting/>
         PREFIX terms: <http://purl.org/dc/terms/>
@@ -19,7 +20,7 @@ def isTask(deltaEntry):
         PREFIX cogs: <http://vocab.deri.ie/cogs#>
         PREFIX adms: <http://www.w3.org/ns/adms#>
 
-        ASK {{
+        ASK {
             GRAPH ?g {
              $entry a task:Task.
             }
@@ -27,9 +28,10 @@ def isTask(deltaEntry):
     """)
     query_string = query_template.substitute(entry=sparql_escape_uri(deltaEntry))
     query_result = query_sudo(query_string)
-    return query_result.boolean == 'true'
+    return query_result.get('boolean') == 'true'
 
-def loadTask(entry) -> dict[str, str] :
+def loadTask(entry) :
+    print("enter loadTask")
     query_template = Template("""
                 PREFIX harvesting: <http://lblod.data.gift/vocabularies/harvesting/>
                 PREFIX terms: <http://purl.org/dc/terms/>
@@ -61,18 +63,18 @@ def loadTask(entry) -> dict[str, str] :
     query_string = query_template.substitute(task=sparql_escape_uri(entry))
     query_result = query_sudo(query_string)
 
-    if len(query_result.results.bindings) >= 1:
-        task_res = query_result.results.bindings[0]
+    if len(query_result.get('results').get('bindings')) >= 1:
+        task_res = query_result.get('results').get('bindings')[0]
         return {
-            "task": task_res.task.value,
-            "job": task_res.job.value,
-            "id": task_res.id.value,
-            "created": task_res.created.value,
-            "modified": task_res.modified.value,
-            "operation": task_res.operation.value,
-            "index": task_res.index.value,
-            "graph": task_res.graph.value,
-            "status": task_res.status.value,
+            "task": task_res.get('task').get('value'),
+            "job": task_res.get('job').get('value'),
+            "id": task_res.get('id').get('value'),
+            "created": task_res.get('created').get('value'),
+            "modified": task_res.get('modified').get('value'),
+            "operation": task_res.get('operation').get('value'),
+            "index": task_res.get('index').get('value'),
+            "graph": task_res.get('graph').get('value'),
+            "status": task_res.get('status').get('value'),
         }
     else:
         return {}
@@ -134,8 +136,8 @@ def select_input_container_graph(task):
     query_string = query_template.substitute(task=taskUri)
     query_result = query_sudo(query_string)
     uris = []
-    for res in query_result.results.bindings:
-        uris.append(res.graph.value)
+    for res in query_result.get('results').get('bindings'):
+        uris.append(res.get('graph').get('value'))
     return uris
 
 
@@ -148,8 +150,8 @@ def fetch_path_from_input_container(container):
     """)
     query_string = query_template.substitute(container=sparql_escape_uri(container))
     query_result = query_sudo(query_string)
-    if len(query_result.results.bindings) >= 1:
-        return query_result.results.bindings[0].path.value
+    if len(query_result.get('results').get('bindings')) >= 1:
+        return query_result.get('results').get('bindings')[0].get('path').get('value')
     return None
 
 
