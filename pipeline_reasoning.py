@@ -14,29 +14,34 @@ def runPipeline(entry):
     assert len(input_container) > 0
     input_container = input_container[0]
     path = fetch_path_from_input_container(input_container)
+    log(f"path from sparql {path}")
+    path = path.replace('share://', '/share/')
+    log(f"path replaced {path}")
     assert path is not None and os.path.exists(path)
     config = Path(f"{CONFIG_DIR}")
+    log(f"check if config {config} exists")
     assert config.exists()
-    eye = Eye()
+    out_path = f"/share/reasoning-out-{generate_uuid()}.ttl"
+    eye = Eye(out_path)
 
     queries = [query.resolve() for query in config.glob("*.n3q")]
     if queries:
         eye.add_queries(queries)
     eye.add_data_by_reference([data.resolve() for data in config.glob("*.n3")])
     eye.add_data_by_path(path)
-    data, code = eye.reason()
+    code = eye.reason()
     if code:
         log(f"an error occurred")
         updateStatus(task, STATUS_FAILED)
     else:
-        file_uri= write_ttl_file(task.get('graph',''), data, "enriched-data.ttl")
+        file_uri= write_ttl_file(task.get('graph',''), out_path, "enriched-data.ttl")
         file_container_uuid = generate_uuid()
         file_container_uri =f"http://redpencil.data.gift/id/dataContainers/{file_container_uuid}"
         append_task_result_file(task, file_container_uri, file_container_uuid, file_uri)
         graph_container_uuid = generate_uuid()
         graph_container_uri = f"http://redpencil.data.gift/id/dataContainers/{graph_container_uuid}"
         append_task_result_graph(task, graph_container_uri,graph_container_uuid, file_container_uri)
-        updateStatus(task, STATUS_FAILED)
+        updateStatus(task, STATUS_SUCCESS)
 
 
 

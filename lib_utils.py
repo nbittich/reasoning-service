@@ -4,7 +4,7 @@ from escape_helpers import sparql_escape_uri, sparql_escape_datetime, sparql_esc
 from sudo_query_helpers import query_sudo, update_sudo
 from datetime import datetime
 from helpers import log,generate_uuid
-
+import shutil
 def isTask(deltaEntry):
     print("enter isTask")
     query_template = Template("""
@@ -28,7 +28,7 @@ def isTask(deltaEntry):
     """)
     query_string = query_template.substitute(entry=sparql_escape_uri(deltaEntry))
     query_result = query_sudo(query_string)
-    return query_result.get('boolean') == 'true'
+    return query_result.get('boolean') == True
 
 def loadTask(entry) :
     print("enter loadTask")
@@ -181,12 +181,11 @@ def append_task_result_file(task, container_uri, container_id, file_uri):
            )
    update_sudo(query_string)
 
-def write_ttl_file(graph, data, logical_file_name):
+def write_ttl_file(graph, output_path, logical_file_name):
     phyId = generate_uuid()
     phyFilename = f"{phyId}.ttl"
     path = f"/share/{phyFilename}"
-    with open(path, 'w') as data_output_file:
-      data_output_file.write(data)
+    os.rename(output_path, path)
 
     physicalFile = path.replace('/share/', 'share://')
     loId = generate_uuid()

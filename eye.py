@@ -9,7 +9,7 @@ from config import KEEP_TEMP_FILES
 
 
 class Eye:
-    def __init__(self) -> None:
+    def __init__(self, output_path) -> None:
         self.data = []
         self.queries = []
         self.options = [
@@ -17,6 +17,8 @@ class Eye:
             "--quiet",  # No comments (timing, eye version and argments)
             "--nope",  # No proof explanation
             "--pass",  # Full deductive closure without filter/query
+            "--output",
+            output_path
         ]
         self.temp_files = []
         self.temp_dir = "/tmp/"
@@ -69,7 +71,7 @@ class Eye:
             + self.options
         )
 
-    def reason(self) -> Tuple[str, int]:
+    def reason(self) -> int:
         try:
             log(self.serialize_command())
             process = subprocess.run(
@@ -79,11 +81,10 @@ class Eye:
                 encoding="utf-8",
                 check=True,
             )
-            cleaned_up_result = process.stdout.rstrip("\n")
             log(process.stderr)
-            return cleaned_up_result, process.returncode
+            return  process.returncode
         except subprocess.CalledProcessError as cpe:
             log(cpe.stderr)
-            return cpe.stderr, cpe.returncode
+            return cpe.returncode
         finally:
             self.cleanup()

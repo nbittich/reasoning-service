@@ -4,7 +4,7 @@ from flask import Response, make_response, request
 from helpers import error, log
 from pipeline_reasoning import runPipeline
 from constants import STATUS_SCHEDULED
-from lib_utils import isTask
+from lib_utils import isTask, updateStatus
 
 from eye import Eye
 from config import CONFIG_DIR
@@ -42,6 +42,8 @@ def delta() -> Response:
     for entry in entries:
         if isTask(entry):
           runPipeline(entry)
+        else:
+          log(f"{entry} not a task")
 
     return response
 
